@@ -522,6 +522,13 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
     $window.scrollTo(0, 0);
   };
 
+  /*
+  * Disocver seems to have  pattern of having all controllers
+  * in one big file, as against one fiel for individua module
+  * Adding all export control options in this one big function
+  * just to be conssistent with the pattern
+  */
+
 
   $scope.exportParams = {};
   $scope.exportParams.exportFileName = 'export.csv';
@@ -532,7 +539,7 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
   $scope.exportParams.quoter = '"';
 
 
-  //Measuring export latency
+  //For measuring export latency
   $scope.exportMetric = {};
   $scope.exportMetric.queryLatency = 0;
   $scope.exportMetric.buildLatency = 0;
@@ -550,14 +557,16 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
       return;
     }
 
-    //Allow a maximum of 5 seconds for export;
-    // cancelResolve is a promise to cancel when timeout occurs
+    /*Allow a maximum of 10 seconds for query to return to us;
+    * Note: this is just elastic latency bout others as well.
+    * cancelResolve is a promise to cancel when timeout occurs
+    */
     var cancelResolve = {};
     var cancelTimer = setTimeout(function() {
       cancelResolve();
       $scope.export.inProgress = false;
       $scope.export.timedout = true;
-    }, 3000)
+    }, 10000)
 
     $scope.export.inProgress = true;
     $scope.queryStart = (new Date()).getTime();
@@ -568,7 +577,6 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
     var request = {};
     request.payload = {};
 
-    //if(scope.state != 'undefined')
 
     request.payload.hits = $scope.hits;
     request.payload.selectedFields = $scope.state.columns || [];
@@ -578,23 +586,31 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
     request.payload.query_string = $scope.state.query.query_string
     request.payload.timestamp = {};
 
-    //Constant for discover export app
+    //Constants for discover export app
     request.payload.timestamp.format = "epoch_millis";
     request.payload.timestamp.gte = moment($scope.timeRange.from._d).valueOf();
     request.payload.timestamp.lte = moment($scope.timeRange.to._d).valueOf();
 
+    /*
+    * The main desgin choice is to use our own AJAX transport to elastic.
+    *  Discover's built in transport (aka 'fetch') has a lot of side effects.
+    *  Also there is a limitation on result set size where in one cannot change 
+    *  Discovers fetch result size without affecting Kibana globally.
+    * Our own transport sidesteps both of these  problems.
+    */
 
-    $http.post('../api/kibana/export/.kibana.dev', request.payload, {
+    $http.post('../api/kibana/export', request.payload, {
 
       timeout: new Promise(function(resolve) {
         cancelResolve = resolve;
       })
 
     }).then((response) => {
-      //Assumption is if data property is present then is of type array;
+      //Assumption is that if data property is present then is of type array;
       $scope.queryEnd = (new Date()).getTime();
       $scope.exportMetric.queryLatency = ($scope.queryEnd - $scope.queryStart)/1000.0;
       console.log('Received result. Building CSV');
+      // Start building export results
       var fAcc = response.data.reduce(function(acc, responseDataElement) {
         request.payload.selectedFields.forEach(function(ele) {
           if (typeof responseDataElement._source != 'undefined') {
@@ -609,6 +625,7 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
         return acc;
       }, "");
 
+      // Using a file save plugin that an elastic Engineer wrote, look in the code for license questions
       var fAccArr = [];
       fAccArr.push(request.payload.selectedFields.join() + "\n");
       fAccArr.push(fAcc);

@@ -1,8 +1,24 @@
+/* This file is the bulk of our interaction with Elastic
+*  Comment reproduced from disocver controller below for convenience
+*
+* The main design choice is to use our own AJAX transport to elastic.
+*  Discover's built in transport (aka 'fetch') has a lot of side effects.
+*  Also there is a limitation on result set size where in one cannot change 
+*  Discovers fetch result size setting without affecting Kibana globally.
+* Our own transport sidesteps both of these problems.
+* 
+*/
+
+
 var es = require('elasticsearch');
 var esClient = {};
 
 export function searchClientInit(server) {
-
+ 
+ /*
+ * This method is maily to read in kibana configuration from 
+ * elastic( defaultIndexPattern etc..,)
+ */
   esClient.config = {};
   esClient.config.esURL = server.config().get('elasticsearch.url');
   esClient.configDefaultKibanaIndex = server.config().get('kibana.index');
@@ -11,8 +27,10 @@ export function searchClientInit(server) {
   esClient.config.defaultKibanaIndexPattern = '*';
 
   esClient.client = new es.Client({
-    host: esClient.config.esURL,
+    host: esClient.config.esURL
+    /** // Add line below for debugging elastic calls
     log: 'trace'
+    **/
   });
 
   esClient.client.search({
@@ -39,6 +57,11 @@ export function searchClientInit(server) {
   });
 
 }
+
+/*
+* This method is similar to discover's 'fetch' but without side effects
+* returns a promise. 
+*/
 
 export function queryWithoutSideEffects(request) {
 

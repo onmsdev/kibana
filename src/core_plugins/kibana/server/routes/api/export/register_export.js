@@ -4,11 +4,14 @@ import {
   searchClientInit,
   queryWithoutSideEffects
 } from './search_client'
-
+/*
+* Our lone servervice method, separated the file to accomodate easy
+*  additions in future
+*/
 export function registerExport(server) {
   searchClientInit(server);
   server.route({
-    path: '/api/kibana/export/{id}',
+    path: '/api/kibana/export',
     method: ['GET', 'POST'],
     handler: function(req, reply) {
       queryWithoutSideEffects(req).then(function(res) {
