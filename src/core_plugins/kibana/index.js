@@ -6,6 +6,8 @@ import search from './server/routes/api/search';
 import settings from './server/routes/api/settings';
 import scripts from './server/routes/api/scripts';
 import * as systemApi from './server/lib/system_api';
+import exp from './server/routes/api/export'; 
+
 
 const mkdirp = Promise.promisify(mkdirpNode);
 
@@ -128,6 +130,7 @@ module.exports = function (kibana) {
       search(server);
       settings(server);
       scripts(server);
+      exp(server);
 
       server.expose('systemApi', systemApi);
     }
