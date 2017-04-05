@@ -529,6 +529,8 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
   $scope.exportParams.exportSize = 500;
   $scope.exportParams.defaultExportSize = 500;
   $scope.exportParams.delimiter = ',';
+  $scope.exportParams.quoter = '"';
+
 
   //Measuring export latency
   $scope.exportMetric = {};
@@ -593,13 +595,13 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
       $scope.queryEnd = (new Date()).getTime();
       $scope.exportMetric.queryLatency = ($scope.queryEnd - $scope.queryStart)/1000.0;
       console.log('Received result. Building CSV');
-      var fAcc = response.data.reduce(function(acc, respDataEle) {
+      var fAcc = response.data.reduce(function(acc, responseDataElement) {
         request.payload.selectedFields.forEach(function(ele) {
-          if (typeof respDataEle._source != 'undefined') {
+          if (typeof responseDataElement._source != 'undefined') {
             if (acc.length > 0 && acc[acc.length - 1] != '\n') {
-              acc += $scope.exportParams.delimiter  + respDataEle._source[ele];
+              acc += $scope.exportParams.delimiter  + $scope.exportParams.quoter + responseDataElement._source[ele] + $scope.exportParams.quoter;
             } else {
-              acc += respDataEle._source[ele];
+              acc += $scope.exportParams.quoter + responseDataElement._source[ele] + $scope.exportParams.quoter;
             }
           }
         });

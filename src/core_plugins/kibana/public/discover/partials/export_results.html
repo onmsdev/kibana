@@ -28,7 +28,7 @@
               id="exportSize"
               ng-model="exportParams.exportSize"
               placeholder="* - All"
-              required
+              required 
             >
       </div>
       <div class="col-md-1">
@@ -43,39 +43,63 @@
               required
             >
       </div>
-      <div class="col-md-4" role="alert">
-              
+      <div class="col-md-2">
+       Field Value Quoter 
+      </div>
+      <div class="col-md-1">
+          <input
+              class="kuiLocalDropdownInput"
+              id="exportQuoter"
+              ng-model="exportParams.quoter"
+              placeholder="\""
+              required
+            >
+      </div>
+      
+    </div>
+    <br/>
+    <div class="row">
+      <div class="col-md-2">
+        <button ng-disabled="(export.inProgress || state.columns.length == 1 &&  state.columns[0] == '_source' || !exportForm.$valid || exportParams.exportSize < 1 || exportParams.delimiter.length > 1 || exportParams.quoter.length > 1)" data-test-subj="discover-save-search-btn" type="submit" class="btn btn-primary">
+            Export
+        </button>
+      </div>
+      <div class="col-md-2">
+      <span>Show Export Metrics</span>
+      </div>
+      <div class="col-md-1">
+       <input type="checkbox" ng-model="exportMetrics.enabled">
+       </input>
+      </div>
+      <div class="col-md-6" role="alert">
+            <span class="error" style="color:green" ng-show ="exportMetrics.enabled">
+            query latency (approx): {{exportMetric.queryLatency}} sec, build latency : {{exportMetric.buildLatency}} sec
+            </span>
+
+      </div>
+    </div>
+    <br/>
+
+    <div class="row">
+      <div class="col-md-8" role="alert">
+
+            <span class="error" style="color:blue" ng-show="export.inProgress" >Exporting...</span>
+            <span class="error" style="color:red" ng-show="export.timedout" >
+            Export taking too long to complete :(  consider revising query for smaller result set or choose lesser number of selected fields
+            </span>
+
               <span class="error" style="color:red" ng-show="exportParams.exportSize < 1 " >
                 Sorry! number of items must be at least 1 </span>
               <span class="error" style="color:red" ng-show="state.columns.length == 1 &&  state.columns[0] == '_source'" >
                 Please select at least one field other than '_source' </span>
               <span class="error" style="color:red" ng-show="exportParams.delimiter.length > 1" >
                 Delimiter should be one character </span>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-4">
-        <button ng-disabled="(export.inProgress || state.columns.length == 1 &&  state.columns[0] == '_source')" data-test-subj="discover-save-search-btn" type="submit" class="btn btn-primary">
-            Export
-        </button>
-      </div>
-
-      <div class="col-md-8" role="alert">
-            <span class="error" style="color:green" >
-            query latency (approx): {{exportMetric.queryLatency}} sec, build latency : {{exportMetric.buildLatency}} sec
-            </span>
+              <span class="error" style="color:red" ng-show="exportParams.quoter.length > 1" >
+                Quoter should be one character </span>
 
       </div>
-    
-    </div>
-    <br/>
-    <div class="row">
-      <div class="col-md-8" role="alert">
-            <span class="error" style="color:blue" ng-show="export.inProgress" >exporting...</span>
-            <span class="error" style="color:red" ng-show="export.timedout" >
-            Export taking too long to complete :(  consider revising query for smaller result set or choose lesser number of selected fields
-            </span>
-
+      <div class="col-md-1" >
+       <span >&nbsp</span>
       </div>
     </div>
 
