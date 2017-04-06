@@ -92,11 +92,6 @@ app.directive('discoverApp', function() {
 function discoverController($scope, config, courier, $route, $window, Notifier,
   AppState, timefilter, Promise, Private, kbnUrl, highlightTags, $http) {
 
-  $window.dscope = $scope;
-  $window.dm = dateMath;
-  $window.cou = courier;
-  $window.mom = moment;
-
   const Vis = Private(VisProvider);
   const docTitle = Private(DocTitleProvider);
   const brushEvent = Private(UtilsBrushEventProvider);
