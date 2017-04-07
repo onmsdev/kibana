@@ -12,6 +12,7 @@
 
 var es = require('elasticsearch');
 var esClient = {};
+var serverCached = {};
 
 export function searchClientInit(server) {
  
@@ -33,6 +34,9 @@ export function searchClientInit(server) {
     **/
   });
 
+  serverCached = server;
+  server.log(['info', 'export'],'Quering Elastic for Kibana configuration');
+
   esClient.client.search({
     index: esClient.configDefaultKibanaIndex,
     filterPath: 'hits.total, hits.hits._source.defaultIndex',
@@ -44,16 +48,17 @@ export function searchClientInit(server) {
       }
     }
   }).then(function(config) {
+    server.log(['info', 'export'],'Received Kibana configuration from Elastic');
     if (config.hits.total > 0) {
       var defaultIndexElement = config.hits.hits.find(function(ele) {
         return (typeof ele._source != 'undefined' && typeof ele._source.defaultIndex != 'undefined');
       });
       esClient.config.defaultKibanaIndexPattern = defaultIndexElement._source.defaultIndex;
     } else {
-      console.trace('ERROR retrieving Kibana Configs. ');
+      server.log(['error', 'export'],'ERROR retrieving Kibana Configs. ');
     }
   }, function() {
-    console.trace('ERROR retrieving Kibana Configs. ' + err.message);
+    server.log(['error', 'export'],'ERROR retrieving Kibana Configs. ');
   });
 
 }
@@ -86,16 +91,21 @@ export function queryWithoutSideEffects(request) {
   setParam(qBody, "query_string", request.payload.query_string);
   setParam(qBody, "timestamp", request.payload.timestamp);
 
+  
+
+  serverCached.log(['info', 'export'],'Sending query to Elastic');
 
   esClient.client.search({
     index: esClient.config.defaultKibanaIndexPattern,
     filterPath: 'hits.hits._index,' + _filterPath.join(),
     body: qBody
   }).then(function(response) {
+
+    serverCached.log(['info', 'export'],'Received query result from Elastic');
     _queryPromiseResolve(response);
 
   }, function(err) {
-    console.trace(err.message);
+    serverCached.log(['error', 'export'],'ERROR querying Elastic ');
   });
 
   return queryPromise;

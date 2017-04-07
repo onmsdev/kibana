@@ -594,6 +594,8 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
     * Our own transport sidesteps both of these  problems.
     */
 
+    notify.log('Export: Sending export request ');
+
     $http.post('../api/kibana/export', request.payload, {
 
       timeout: new Promise(function(resolve) {
@@ -602,9 +604,10 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
 
     }).then((response) => {
       //Assumption is that if data property is present then is of type array;
+      notify.log('Export: Received export reply. Starting to build CSV ');
       $scope.queryEnd = (new Date()).getTime();
       $scope.exportMetric.queryLatency = ($scope.queryEnd - $scope.queryStart)/1000.0;
-      console.log('Received result. Building CSV');
+
       // Start building export results
       var fAcc = response.data.reduce(function(acc, responseDataElement) {
         request.payload.selectedFields.forEach(function(ele) {
@@ -638,6 +641,7 @@ function discoverController($scope, config, courier, $route, $window, Notifier,
       $scope.export.inProgress = false;
       clearTimeout(cancelTimer);
       cancelTimer = null;
+      notify.log('Export: Building CSV complete ');
       
 
     });
